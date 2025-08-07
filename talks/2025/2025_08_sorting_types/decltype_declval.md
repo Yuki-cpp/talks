@@ -1,4 +1,4 @@
-
+<!-- .slide: data-background-image="bert_ernie.png" -->
 # The `decl` duo
 
 - `decltype`      <!-- .element: class="fragment" data-fragment-index="0" -->
