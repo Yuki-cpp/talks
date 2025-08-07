@@ -4,8 +4,8 @@
 
 ### Agenda
 
-- Context
-- Refresher on `const` & Cie
-- ...
-
+- Goal
+- Usefull C++ notions
+    - `constexpr` & `consteval`
+    - `decltype` (& `std::declval`)
 
