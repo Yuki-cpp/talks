@@ -1,5 +1,5 @@
 <!-- .slide: data-background-image="bert_ernie.png" -->
-# The `decl` duo
+## The `decl` duo
 
 - `decltype`      <!-- .element: class="fragment" data-fragment-index="0" -->
 - `std::declval`  <!-- .element: class="fragment" data-fragment-index="1" -->

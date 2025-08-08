@@ -1,0 +1,79 @@
+<section data-background-image="confused_elmo.png">
+    <h2>What is a "unit"?</h2>
+    How do we define a unit in our C++ library
+</section>
+<section>
+    <h3>Sensible expression should be valid:</h3>
+    <ul>
+        <li>\[ 50m \times 2m \]</li>
+        <li>\[ 39m^{2}s^{-1} + 3m^{2}s^{-1} \]</li>
+        <li>\[ 39m^{2} \over 3s \]</li>
+    </ul>
+</section>
+<section>
+    <h3>While non-sensical ones must not:</h3>
+    <ul>
+        <li>\[ 5m + 5s \]</li>
+        <li>\[ 50m + 23 \]</li>
+    </ul>
+</section>
+
+<section>
+    <h3>Use a different C++ type for each unit</h3>
+    <ul>
+        <li>Little to no runtime cost</li>
+        <li>Strong types will allow us to enable/disable operations precisely</li>
+        <li class="fragment fade-in">25 SI units means up to \(25! \times 4\) operations to handle.</li>
+    </ul>
+</section>
+
+<section>
+    <section>
+        <h3>Variadic templates to the rescue</h3>
+        <ul>
+            <li>We can use a variadic template to define a unit</li>
+            <li>Each type in the parameter pack is a dimension and exponent</li>
+            <li>Only operations we use will be defined/compiled</li>
+        </ul>
+    </section>
+    <section>
+        <pre>
+        <code data-line-numbers="1-15" data-trim class="language-cpp">   
+            <script type="text/template">
+template <typename T>
+concept IsUnitTag = requires {
+    // ...
+};
+
+template <typename T>
+concept IsUnitComponent = requires {
+    typename T::tag;
+    requires IsUnitTag<typename T::tag>;
+    { T::power } -> std::convertible_to<int>;
+};
+
+template<IsUnitComponent... >
+class Unit{};
+            </script>
+        </code>
+        </pre>
+    </section>
+</section>
+
+<section>
+    <h2>The issue</h2>
+    <pre>
+        <code data-line-numbers="1-2|1-10" data-trim class="language-cpp">   
+            <script type="text/template">
+using Meter = UnitComponent<m, 1>;
+using PerSecond = UnitComponent<s, -1>;
+
+auto speed_1 = Unit<Meter, PerSecond>{1};
+auto speed_2 = Unit<PerSecond, Meter>{1};
+            </script>
+        </code>
+    </pre>
+    <p class="fragment fade-in">\(speed\_1\) and \(speed\_2\) have different types</p>
+
+    <p class="fragment fade-in">We need a way to sort type lists</p>
+</section>

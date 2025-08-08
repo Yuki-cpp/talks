@@ -19,11 +19,11 @@
     <div class="reveal">
         <div class="reveal">
             <div class="slides">
-                <section data-markdown="introduction.md" data-separator="^^\r?\n---\r?\n$"
-                    data-separator-vertical="^\r?\n------\r?\n$" data-separator-notes="^Note:"
-                    data-charset="iso-8859-15" data-transition="slide">
-                </section>
+                 <include src="introduction.html"></include>
 
+                <section>
+                    <h2>C++ Refresher</h2>
+                </section>
                 <section data-markdown="const_explanations.md" data-separator="^^\r?\n---\r?\n$"
                     data-separator-vertical="^\r?\n------\r?\n$" data-separator-notes="^Note:"
                     data-charset="iso-8859-15" data-transition="slide">
@@ -33,6 +33,8 @@
                     data-separator-vertical="^\r?\n------\r?\n$" data-separator-notes="^Note:"
                     data-charset="iso-8859-15" data-transition="slide">
                 </section>
+
+                <include src="unit_definition.html"></include>
 
                 <section data-markdown="post.md" data-separator="^^\r?\n---\r?\n$"
                     data-separator-vertical="^\r?\n------\r?\n$" data-separator-notes="^Note:"
@@ -46,12 +48,26 @@
     <script src="../../../plugin/notes/notes.js"></script>
     <script src="../../../plugin/markdown/markdown.js"></script>
     <script src="../../../plugin/highlight/highlight.js"></script>
+    <script src="../../../plugin/math/math.js"></script>
     <script>
-        Reveal.initialize({
-            hash: true,
-            slideNumber: 'c/t',
 
-            plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
+        function loadIncludes() {
+            return Promise.all(
+                [...document.querySelectorAll("include")].map((include) => {
+                    return fetch(include.getAttribute("src"))
+                        .then((response) => response.text())
+                        .then((html) => (include.outerHTML = html))
+                        .catch(console.err);
+                })
+            );
+        }
+        loadIncludes().then(() => {
+
+            Reveal.initialize({
+                hash: true,
+                slideNumber: 'c/t',
+                plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX]
+            });
         });
     </script>
 </body>

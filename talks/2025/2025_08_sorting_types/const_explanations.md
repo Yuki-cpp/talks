@@ -1,5 +1,5 @@
 <!-- .slide: data-background-image="horsemen.png" -->
-# The 4 horsemen of the `const`-pocalyse
+## The 4 horsemen of the `const`-pocalyse
 
 - `const`     <!-- .element: class="fragment" data-fragment-index="0" -->
 - `constexpr` <!-- .element: class="fragment" data-fragment-index="1" -->
