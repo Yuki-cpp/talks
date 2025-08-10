@@ -77,3 +77,19 @@ auto speed_2 = Unit<PerSecond, Meter>{1};
 
     <p class="fragment fade-in">We need a way to sort type lists</p>
 </section>
+
+
+<section>
+    <h3>Our goal is for the following to compile:</h3>
+    <pre>
+        <code data-trim class="language-cpp">   
+            <script type="text/template">
+using MyType = std::tuple<B, A, C>;
+using MySortedType = Sort(MyType); // Pseudocode
+static_assert(std::is_same_v<
+                    MySortedType, 
+                    std::tuple<A, B, C>>);
+            </script>
+        </code>
+    </pre>
+</section>
