@@ -52,40 +52,40 @@ using from_tuple_t = typename si::impl::from_tuple<T, U>::type;
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: clamp(0.5rem, 1vw, 1rem);
-                /* smaller gap = more width */
-                /* align-items: stretch; */
 
-                /* Full-bleed: extend to slide edges by offsetting Reveal’s block margin */
                 width: calc(100% + 8 * var(--r-block-margin, 20px));
                 margin-left: calc(-1 * var(--r-block-margin, 20px));
                 margin-right: calc(-1 * var(--r-block-margin, 20px));
             }
 
+            /* Default: left box fixed height */
             .two-code-grid pre {
                 margin: 0;
                 height: 72vh;
-                /* generous vertical slot */
-                /* overflow: auto; */
-                /* scroll if needed */
+            }
+
+            /* Right box: shrink to content */
+            .two-code-grid pre:nth-child(2) {
+                height: auto;
+                /* fit content */
+                align-self: start;
+                /* stick to top instead of stretching */
             }
 
             .two-code-grid code {
                 white-space: pre;
-                /* no wrapping = more columns */
                 line-height: 1.25;
                 font-size: clamp(16px, min(1.4vw, 2vh), 18px);
-                /* a bit smaller for width */
                 tab-size: 2;
                 font-variant-ligatures: none;
             }
         </style>
 
+
         <h3>(Simplified) 2023's sort</h3>
         <div class="two-code-grid">
-            <!-- LEFT: define highlight steps e.g. 1-3 | 6-7 | 11 -->
-            <pre><code class="language-cpp" data-trim
-      data-line-numbers="1-2|4-8|15|16-22|25"
-      data-fragment-index="1"><script type="text/template">
+            <pre><code class="language-cpp" data-trim data-line-numbers="1-2|4-8|15|16-22|25" data-fragment-index="1">
+                <script type="text/template">
 template <typename T, typename Pred>
 struct sort;
 
@@ -112,10 +112,9 @@ class sort<std::tuple<T, Ts...>, Pred>
 public:
     using type = merge<left, right, Pred>;
 };
-</script></code></pre>
-            <pre><code class="language-python" data-trim
-      data-line-numbers="1-2|3-4|6|7-8|10"
-      data-fragment-index="1">
+                </script>
+            </code></pre>
+            <pre><code class="language-python" data-trim data-line-numbers="1-2|3-4|6|7-8|10" data-fragment-index="1">
 def sort(Ts: list[Type], 
          Pred: Predicate) -> tuple:
     if len(Ts) == 0:
@@ -126,17 +125,17 @@ def sort(Ts: list[Type],
     right = split_r(input, Pred)
 
     return merge(left, right, Pred)
-    </code></pre>
+            </code></pre>
         </div>
     </section>
 
 
-    <section >
+    <section>
         <h3>(Actual) 2023's sort</h3>
-        <pre
-            style="white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word; line-height:1.25; font-size:min(1.8vw, 2.2vh);">
-    <code data-line-numbers="1-19" data-trim class="language-cpp">
-        <script type="text/template">
+        <pre style="
+            word-break:break-word; line-height:1.25; font-size:min(1.8vw, 2.2vh);">
+            <code data-line-numbers="1-19" data-trim class="language-cpp">
+                <script type="text/template">
 template <typename T, template <typename, typename> typename Pred>
 struct sort;
 
@@ -156,10 +155,8 @@ class sort<std::tuple<T, Ts...>, Pred>
 public:
     using type = merge_t<left_sort_t, right_sort_t, Pred>;
 };
-        </script>
-    </code>
-  </pre>
+                </script>
+            </code>
+        </pre>
     </section>
-
-
 </section>
