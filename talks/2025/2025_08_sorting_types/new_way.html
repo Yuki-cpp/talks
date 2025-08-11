@@ -1,0 +1,134 @@
+<section>
+    <h2>Can we do better?</h2>
+    <h2>Can we do simpler?</h2>
+</section>
+
+<section data-background-image="elmo_eureka.png">
+    <h3>A new approach</h3>
+
+    <ol>
+        <li>Convert each type into a value</li>
+        <li>Sort the values in `consteval` functions</li>
+        <li>Generate a new type from the sorted values</li>
+    </ol>
+</section>
+
+<section>
+    <h3>The new sort function</h3>
+
+    <pre style="line-height:1.25; font-size:min(1.8vw, 2.2vh);">
+        <code data-line-numbers="1-17|7-15|1-2" data-trim class="language-cpp">
+            <script  type="text/template">
+// Pair<uid, power>
+using UnitComponentPair = std::pair<std::size_t, int>;
+
+template <size_t N>
+consteval auto sort_units(std::array<UnitComponentPair, N> units)
+{
+    std::ranges::sort(units, [](const auto &a, const auto &b)
+                      {
+                        if(b.second == 0){
+                            return true;
+                        }
+                        if(a.second == b.second){
+                            return a.first < b.first;
+                        }
+                        return a.second > b.second; });
+    return units;
+}
+    </script></code></pre>
+</section>
+
+<section>
+    <h3>Unit to UnitComponentPairs</h3>
+
+    <pre style="line-height:1.25; font-size:min(1.8vw, 2.2vh);">
+        <code data-line-numbers="1-5|7-11" data-trim class="language-cpp">
+            <script  type="text/template">
+// Pair<uid, power>
+using UnitComponentPair = std::pair<std::size_t, int>;
+
+template <IsUnitComponent... Ts>
+struct Unit{/**/};
+
+template <IsUnitComponent... Ts>
+consteval auto serialize_units(std::tuple<Ts...>)
+{
+    return std::to_array<UnitComponentPair>({{Ts::tag::priority, Ts::power}...});
+}
+
+    </script></code></pre>
+
+</section>
+
+<section>
+    <h3>UnitComponentPairs to Unit</h3>
+
+    <ul>
+        <li>How do we convert a single pair into a UnitComponent?</li>
+        <li>How do we convert an array into a tuple?</li>
+    </ul>
+</section>
+
+<section>
+    <h3>UnitComponentPair to UnitComponent</h3>
+
+    <pre style="line-height:1.25; font-size:min(1.8vw, 2.2vh);">
+        <code data-line-numbers="1-10" data-trim class="language-cpp">
+            <script  type="text/template">
+template <UnitComponentPair unit>
+consteval auto deserialize_unit()
+{
+    constexpr auto priority = unit.first;
+    constexpr auto power = unit.second;
+    return UnitComponent<decltype(unit_tag_from_priority<priority>()), power>();
+}
+    </script></code></pre>
+</section>
+
+<section>
+    <h3>Array to tuple</h3>
+
+    <pre style="line-height:1.25; font-size:min(1.8vw, 2.2vh);">
+        <code data-line-numbers="1-20" data-trim class="language-cpp">
+            <script  type="text/template">
+template <std::size_t N, std::array<UnitComponentPair, N> units, std::size_t... Is>
+consteval auto deserialize_units(std::integer_sequence<std::size_t, Is...>)
+{
+    return std::make_tuple(deserialize_unit<units[Is]>()...);
+}
+
+template <std::size_t N, std::array<UnitComponentPair, N> units>
+consteval auto deserialize_units()
+{
+    return deserialize_units<units.size(), units>(std::make_index_sequence<N>());
+}
+    </script></code></pre>
+</section>
+
+<section>
+    <h3>Putting things together</h3>
+
+    <pre style="line-height:1.25; font-size:min(1.8vw, 2.2vh);">
+        <code data-line-numbers="1-20" data-trim class="language-cpp">
+            <script  type="text/template">
+template <IsUnitComponent... Ts>
+consteval auto canonicalize_units(std::tuple<Ts...> units)
+{
+    constexpr auto serialized = serialize_units(units);
+    constexpr auto merged = reduce_duplicated_units<serialized.size(), 
+                                                    serialized>();
+    constexpr auto sorted = sort_units(merged);
+    constexpr auto filtered = remove_null_powers<sorted.size(), 
+                                                 sorted>();
+    return deserialize_units<filtered.size(), filtered>();
+}
+
+static auto Unit::canonical(double value)
+{
+    return from_tuple_t<Unit,
+                        decltype(canonicalize_units(
+                            std::tuple<Ts...>()))>(value);
+}
+    </script></code></pre>
+</section>
