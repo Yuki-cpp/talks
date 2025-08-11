@@ -6,4 +6,5 @@
 
 ---
 
+<!-- .slide: data-background-image="thanks.png" -->
 # Thank you
