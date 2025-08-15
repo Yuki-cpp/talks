@@ -1,24 +1,21 @@
-<section>
-    <h2>Can we do better?</h2>
-    <h2>Can we do simpler?</h2>
-</section>
+## Can we do better?
+# Can we do simpler? <!-- .element: class="fragment" data-fragment-index="0" -->
 
-<section data-background-image="elmo_eureka.png">
-    <h3>A new approach</h3>
+---
 
-    <ol>
-        <li>Convert each type into a value</li>
-        <li>Sort the values in `consteval` functions</li>
-        <li>Generate a new type from the sorted values</li>
-    </ol>
-</section>
+<!-- .slide: data-background-image="elmo_eureka.png" -->
+### A new approach
 
-<section>
-    <h3>The new sort function</h3>
+1. Convert each UnitComponent type into a value
+2. Convert an Unit into an array of values
+3. Sort/Process the array via `consteval` functions
+4. Convert the array back into a new Unit type
 
-    <pre style="line-height:1.25; font-size:min(1.8vw, 2.2vh);">
-        <code data-line-numbers="1-17|7-15|1-2" data-trim class="language-cpp">
-            <script  type="text/template">
+---
+
+### Starting by the end: The sort function
+
+```cpp [1-17|7-15]
 // Pair<uid, power>
 using UnitComponentPair = std::pair<std::size_t, int>;
 
@@ -36,15 +33,14 @@ consteval auto sort_units(std::array<UnitComponentPair, N> units)
                         return a.second > b.second; });
     return units;
 }
-    </script></code></pre>
-</section>
+```
 
-<section>
-    <h3>Unit to UnitComponentPairs</h3>
 
-    <pre style="line-height:1.25; font-size:min(1.8vw, 2.2vh);">
-        <code data-line-numbers="1-5|7-11" data-trim class="language-cpp">
-            <script  type="text/template">
+---
+
+### The making of `UnitComponentPair`
+
+```cpp [1-5|7-11]
 // Pair<uid, power>
 using UnitComponentPair = std::pair<std::size_t, int>;
 
@@ -56,26 +52,14 @@ consteval auto serialize_units(std::tuple<Ts...>)
 {
     return std::to_array<UnitComponentPair>({{Ts::tag::priority, Ts::power}...});
 }
+```
+ <!-- .element: class="full-bleed" -->
 
-    </script></code></pre>
+---
 
-</section>
+### How do we go back? (1/2)
 
-<section>
-    <h3>UnitComponentPairs to Unit</h3>
-
-    <ul>
-        <li>How do we convert a single pair into a UnitComponent?</li>
-        <li>How do we convert an array into a tuple?</li>
-    </ul>
-</section>
-
-<section>
-    <h3>UnitComponentPair to UnitComponent</h3>
-
-    <pre style="line-height:1.25; font-size:min(1.8vw, 2.2vh);">
-        <code data-line-numbers="1-10" data-trim class="language-cpp">
-            <script  type="text/template">
+```cpp [1-7|9-14]
 template <UnitComponentPair unit>
 consteval auto deserialize_unit()
 {
@@ -83,35 +67,53 @@ consteval auto deserialize_unit()
     constexpr auto power = unit.second;
     return UnitComponent<decltype(unit_tag_from_priority<priority>()), power>();
 }
-    </script></code></pre>
-</section>
 
-<section>
-    <h3>Array to tuple</h3>
+struct m
+{static constexpr std::size_t priority = 0;};
+template <>
+consteval auto unit_tag_from_priority<0>()
+{return m();}
+```
 
-    <pre style="line-height:1.25; font-size:min(1.8vw, 2.2vh);">
-        <code data-line-numbers="1-20" data-trim class="language-cpp">
-            <script  type="text/template">
+---
+
+### How do we go back? (2/2)
+
+We need to write the C++ compile time equivalent of:
+```python
+return tuple(*type_list)
+```
+
+- `tuple(...)` ↔️ `std::make_tuple(...)`
+
+- `*type_list` ↔️ Pack expansion
+    - Need a pack to expand
+
+------
+
+```cpp [1-10]
 template <std::size_t N, std::array<UnitComponentPair, N> units, std::size_t... Is>
 consteval auto deserialize_units(std::integer_sequence<std::size_t, Is...>)
 {
     return std::make_tuple(deserialize_unit<units[Is]>()...);
 }
+```
+<!-- .element: class="full-bleed" -->
 
+```cpp [1-10]
 template <std::size_t N, std::array<UnitComponentPair, N> units>
 consteval auto deserialize_units()
 {
     return deserialize_units<units.size(), units>(std::make_index_sequence<N>());
 }
-    </script></code></pre>
-</section>
+```
+<!-- .element: class="fragment full-bleed" data-fragment-index="0" -->
 
-<section>
-    <h3>Putting things together</h3>
+---
 
-    <pre style="line-height:1.25; font-size:min(1.8vw, 2.2vh);">
-        <code data-line-numbers="1-20" data-trim class="language-cpp">
-            <script  type="text/template">
+### Putting things together
+
+```cpp [1-11|13-25]
 template <IsUnitComponent... Ts>
 consteval auto canonicalize_units(std::tuple<Ts...> units)
 {
@@ -124,11 +126,11 @@ consteval auto canonicalize_units(std::tuple<Ts...> units)
     return deserialize_units<filtered.size(), filtered>();
 }
 
-static auto Unit::canonical(double value)
+static auto canonical(double value)
 {
     return from_tuple_t<Unit,
                         decltype(canonicalize_units(
                             std::tuple<Ts...>()))>(value);
 }
-    </script></code></pre>
-</section>
+```
+<!-- .element: class="full-bleed tall" -->

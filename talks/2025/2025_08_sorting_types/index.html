@@ -14,12 +14,52 @@
     <!-- Theme used for syntax highlighted code -->
     <link rel="stylesheet" href="../../../plugin/highlight/monokai.css">
 
-
     <style>
+        /* Tweak text size (optional) */
+        .reveal pre code {
+            font-size: clamp(12px, 1.4vw, 20px);
+            line-height: 1.25;
+        }
+
+        /* HEIGHT: give code blocks more vertical space + scrolling */
+        .reveal pre.tall {
+            height: 70vh;
+            /* pick your number (e.g., 50vh, 80vh) */
+            max-height: 70vh;
+            /* keep it capped */
+            overflow: auto;
+            /* scroll if content is long */
+        }
+
+        /* WIDTH OPTION A: keep within normal content width but wider than default */
         .reveal pre {
-            border-radius: 12px;
+            width: 100%;
+            /* e.g., 90–100% of the content area */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* WIDTH OPTION B: full-bleed edge-to-edge across the slide */
+        .reveal pre.full-bleed {
+            /* extend beyond Reveal’s side margins */
+            width: 120%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* WIDTH OPTION C: fixed character width (independent of slide width) */
+        .reveal pre.narrow {
+            max-width: none;
+            /* allow wider than container */
+            width: 90ch;
+            /* ~90 characters wide */
+            overflow-x: auto;
+            /* horizontal scroll if needed */
+            margin-left: auto;
+            margin-right: auto;
         }
     </style>
+
 
 </head>
 
@@ -49,7 +89,10 @@
 
                 <include src="old_way.html"></include>
 
-                <include src="new_way.html"></include>
+                <section data-markdown="new_way.md" data-separator="^^\r?\n---\r?\n$"
+                    data-separator-vertical="^\r?\n------\r?\n$" data-separator-notes="^Note:"
+                    data-transition="slide">
+                </section>
 
                 <section data-markdown="post.md" data-separator="^^\r?\n---\r?\n$"
                     data-separator-vertical="^\r?\n------\r?\n$" data-separator-notes="^Note:"
