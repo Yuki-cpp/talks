@@ -78,7 +78,7 @@ Nested requirements let you add further boolean conditions.
 
 # Standard library concepts
 
-Don't reinvent the wheel — `<concepts>` and `<ranges>` have you covered.
+Don't reinvent the wheel — `<concepts>`, `<iterator>`, and `<ranges>` have you covered.
 
 <div class="grid grid-cols-2 gap-6 mt-4">
 
@@ -99,14 +99,16 @@ Don't reinvent the wheel — `<concepts>` and `<ranges>` have you covered.
 
 <div>
 
-**Iterator / Range (`<ranges>`)**
+**Iterator (`<iterator>`)**
 - `std::input_iterator<I>`
 - `std::forward_iterator<I>`
 - `std::random_access_iterator<I>`
+- `std::sortable<I, Comp>`
+
+**Range (`<ranges>`)**
 - `std::ranges::range<R>`
 - `std::ranges::sized_range<R>`
 - `std::ranges::input_range<R>`
-- `std::sortable<I, Comp>`
 
 </div>
 

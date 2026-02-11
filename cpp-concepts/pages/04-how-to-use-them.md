@@ -51,11 +51,10 @@ gcd(42, 17L);  // OK: int and long are both integral
 
 <v-click>
 
-To enforce the same type with terse syntax, add a trailing constraint:
+To enforce the same type, use the explicit template form:
 
 ```cpp
-auto gcd(std::integral auto a, decltype(a) b);
-// or just use style 3:
+// Style 3 is the simplest way to enforce the same type
 template<std::integral T>
 T gcd(T a, T b);
 ```
@@ -169,7 +168,9 @@ std::string to_string(T const& val) {
         return std::to_string(val);
     }
     else if constexpr (std::floating_point<T>) {
-        return std::to_string(val);
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(2) << val;
+        return oss.str();
     }
     else if constexpr (requires { val.str(); }) {
         return val.str();
@@ -190,4 +191,8 @@ Concepts and inline `requires`-expressions work naturally as `if constexpr` cond
 Concepts work perfectly with if constexpr. You can use named concepts
 or inline requires-expressions as conditions. This replaces a lot
 of the manual type_traits checks people used to write.
+
+Note: static_assert(false) in a discarded if-constexpr branch was
+technically ill-formed NDR before CWG2518. Modern compilers (GCC 13+,
+Clang 17+, MSVC) accept it in all language modes as a retroactive DR fix.
 -->

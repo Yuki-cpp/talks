@@ -74,8 +74,8 @@ The body only uses `++`, `!=`, and `*` — that's `std::input_iterator` territor
 // Just right
 void print_all(std::input_iterator auto first,
                std::sentinel_for<decltype(first)> auto last) {
-    for (auto it = first; it != last; ++it)
-        std::cout << *it << '\n';
+    for (; first != last; ++first)
+        std::cout << *first << '\n';
 }
 ```
 
@@ -181,13 +181,16 @@ If it bugs you, name the concept.
 
 # Pitfall 5: Subsumption surprises
 
-Subsumption only works with **concepts** composed via `&&` / `||`.
+Subsumption only works when atomic constraints **originate from the same concept definition**.
 
 ```cpp
 template<typename T>
-concept A = std::integral<T> && true;  // 'true' is not a concept
+constexpr bool is_integral_v = std::is_integral_v<T>;
 
-template<typename T> requires A<T>
+template<typename T>
+concept IntLike = is_integral_v<T>;  // wraps a type trait, not a concept
+
+template<typename T> requires IntLike<T>
 void f(T);
 
 template<typename T> requires std::integral<T>
@@ -200,34 +203,33 @@ void f(T);
 error: call to 'f' is ambiguous
 ```
 
-`A` does **not** subsume `std::integral` because `true` is not a concept — subsumption can't "see through" it.
+`IntLike` uses a `constexpr bool` — the compiler can't trace it back to `std::integral`'s atomic constraints. They look equivalent but are **opaque** to subsumption.
 
 </v-click>
 
 <v-click>
 
-Similarly, refactoring concept logic into a `constexpr bool` function breaks subsumption:
+The fix: build concepts **from** other concepts, not from raw type traits:
 
 ```cpp
 template<typename T>
-constexpr bool is_special = std::integral<T>;
-
-template<typename T>
-concept Special = is_special<T>;  // opaque to subsumption
+concept IntLike = std::integral<T>;  // now shares atomic constraints
 ```
 
 </v-click>
 
 <v-click>
 
-**Keep logical structure inside concept definitions** if you rely on overload ordering.
+**Rule:** if you rely on overload ordering, compose concepts from concepts — never from `constexpr bool` or raw type traits.
 
 </v-click>
 
 <!--
 Subsumption is the mechanism that lets the compiler prefer a more-constrained overload.
-But it only works with concept-level conjunctions and disjunctions.
-Anything else is opaque. This is the trickiest gotcha in practice.
+It works by tracing constraints back through concept definitions to atomic constraints.
+If two constraints originate from the same concept definition, the compiler can compare them.
+But constexpr bools, raw type traits, and duplicate requires-expressions are opaque —
+the compiler treats them as unrelated even if they check the same thing.
 -->
 
 ---

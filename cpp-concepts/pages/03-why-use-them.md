@@ -122,12 +122,13 @@ print(std::vector{1,2}); // calls range overload
 
 <v-click>
 
-The compiler picks the most **specific** match via **subsumption**.
+Each concept-constrained overload is a **distinct candidate** — the compiler matches the right one. No tag dispatch needed.
 
 </v-click>
 
 <!--
 Each call resolves to the right overload automatically.
-If one concept is "more constrained" than another, the compiler prefers it.
-This is called subsumption, and it replaces manual tag dispatch.
+These concepts are non-overlapping, so ordinary overload resolution handles them.
+When concepts DO overlap, subsumption kicks in: a more-constrained overload
+(e.g. signed_integral vs integral) is preferred. We'll cover that in Pitfalls.
 -->

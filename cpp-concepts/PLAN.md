@@ -29,7 +29,7 @@ Introduce the C++20 feature.
   ```cpp
   template<typename T>
   concept Serializable = requires(T v) {
-      { v.serialize() } -> std::convertible_to<std::string>;
+      { v.to_string() } -> std::convertible_to<std::string>;
   };
   ```
 - Walk through the `requires`-expression anatomy:
@@ -37,8 +37,10 @@ Introduce the C++20 feature.
   - Type requirements (`typename T::value_type;` — type must exist)
   - Compound requirements (`{ expr } -> concept;` — must compile AND satisfy a concept)
   - Nested requirements (`requires (condition);` — additional boolean constraint)
-- Show how standard library provides ready-made concepts in `<concepts>` and `<ranges>`:
-  `std::integral`, `std::floating_point`, `std::copyable`, `std::invocable`, `std::ranges::range`, etc.
+- Show how standard library provides ready-made concepts in `<concepts>`, `<iterator>`, and `<ranges>`:
+  `std::integral`, `std::floating_point`, `std::copyable`, `std::invocable` (in `<concepts>`);
+  `std::input_iterator`, `std::forward_iterator`, `std::sortable` (in `<iterator>`);
+  `std::ranges::range`, `std::ranges::input_range` (in `<ranges>`)
 
 ### 3. Why Use Them? (5 min)
 
@@ -64,9 +66,9 @@ Three concrete benefits, each with a live demo/example.
   ```
 
 **3c. Controlled overload resolution**
-- Concepts participate in overload resolution and partial ordering
+- Concepts participate in overload resolution — each constrained overload is a distinct candidate
 - Example: `print(std::integral auto v)` vs `print(std::floating_point auto v)` — compiler picks the right one, no tag dispatch or SFINAE needed
-- Mention subsumption: a more-constrained overload is preferred over a less-constrained one
+- Briefly mention subsumption (covered in depth in Pitfalls): when concepts overlap, a more-constrained overload is preferred over a less-constrained one
 
 ### 4. How to Use Them — Syntax in Practice (10 min)
 
@@ -91,6 +93,7 @@ auto gcd(std::integral auto a, std::integral auto b);
 ```
 - Discuss when each style is appropriate (team conventions, complexity of constraint)
 - Note: style 4 means each parameter could be a *different* integral type — contrast with style 3
+- To enforce the same type with terse syntax, fall back to style 3 (explicit template parameter)
 
 **4b. Writing your own concepts**
 - Start simple: `concept Addable = requires(T a, T b) { a + b; };`
@@ -109,6 +112,8 @@ auto gcd(std::integral auto a, std::integral auto b);
   std::string to_string(T const& val) {
       if constexpr (std::integral<T>) {
           return std::to_string(val);
+      } else if constexpr (std::floating_point<T>) {
+          // different handling, e.g. fixed precision
       } else if constexpr (requires { val.str(); }) {
           return val.str();
       } else {
@@ -116,6 +121,7 @@ auto gcd(std::integral auto a, std::integral auto b);
       }
   }
   ```
+- Note: `static_assert(false)` in discarded `if constexpr` branches was ill-formed NDR before CWG2518 (C++23 DR, retroactively applied); modern compilers accept it in all modes
 
 ### 5. Pitfalls and Gotchas (7-10 min)
 
@@ -141,10 +147,10 @@ This is where the audience learns what *not* to do.
 - Prefer naming your concepts to avoid this pattern when possible
 
 **5e. Subsumption surprises**
-- Only concepts composed via **conjunction (`&&`) and disjunction (`||`) at the concept level** participate in subsumption
-- `std::integral<T> && true` does NOT subsume `std::integral<T>` because `true` is not a concept
-- If you refactor concept logic into a helper `constexpr bool` function, subsumption breaks
-- Keep the logical structure inside concept definitions if you rely on overload ordering
+- Subsumption only works when atomic constraints **originate from the same concept definition**
+- If you wrap a type trait in a `constexpr bool` and use that instead of a concept, the compiler can't trace it back — subsumption breaks
+- Example: `concept IntLike = is_integral_v<T>` (constexpr bool) vs `std::integral<T>` — semantically identical but opaque to subsumption
+- Fix: build concepts from other concepts, not from raw type traits or `constexpr bool` helpers
 
 **5f. Compilation cost considerations**
 - Concepts can increase compile time if the requires-expressions are complex or deeply nested

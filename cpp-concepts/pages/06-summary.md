@@ -30,7 +30,7 @@ What to do, and what to avoid
 ### Don't
 
 - Assume concepts enforce **semantics** — they check syntax only
-- Rely on subsumption with **non-concept booleans**
+- Rely on subsumption with **`constexpr bool`** or raw type traits — use named concepts
 - Over-constrain: requiring `random_access_iterator` when `forward_iterator` suffices
 - Write one giant `requires`-expression when composition is clearer
 - Forget that **each `auto`** in terse syntax is a **separate type**
